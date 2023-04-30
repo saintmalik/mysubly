@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -9,16 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/saintmalik/mysubly/configs"
 	"github.com/saintmalik/mysubly/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var subsCollection *mongo.Collection = configs.GetCollection(configs.DB, "subs")
-
-func CreateSubs(c *gin.Context) {
+func CreateSub(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	var sub models.CreateSub
 	defer cancel()
 
+	var sub models.CreateSub
 	if err := c.BindJSON(&sub); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err})
 		log.Fatal(err)
@@ -39,12 +40,80 @@ func CreateSubs(c *gin.Context) {
 		PaymentMethod:  sub.PaymentMethod,
 	}
 
-	result, err := subsCollection.InsertOne(ctx, newSubs)
+	result, err := configs.SubsCollection.InsertOne(ctx, newSubs)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Subs successfully", "Data": map[string]interface{}{"data": result}})
+	c.JSON(http.StatusCreated, gin.H{"message": "Sub created successfully", "data": result})
+}
+
+func Sub(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	var subs []models.EditSub
+	cursor, err := configs.SubsCollection.Find(ctx, bson.D{})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		log.Fatal(err)
+		return
+	}
+	err = cursor.All(ctx, &subs)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		log.Fatal(err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "success", "data": subs})
+}
+
+func SubById(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	subId := c.Param("subid")
+	var sub models.EditSub
+
+	Id, err := primitive.ObjectIDFromHex(subId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = configs.SubsCollection.FindOne(ctx, bson.M{"_id": Id}).Decode(&sub)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"message": fmt.Sprintf("sub with id %s not found", subId)})
+			return
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		log.Fatal(err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "success", "data": sub})
+}
+
+func DeleteSub(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	subId := c.Param("subid")
+
+	Id, err := primitive.ObjectIDFromHex(subId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = configs.SubsCollection.DeleteOne(ctx, bson.M{"_id": Id})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err})
+		log.Fatal(err)
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
 }

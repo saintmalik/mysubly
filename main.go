@@ -2,16 +2,17 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/saintmalik/mysubly/configs"
+	_ "github.com/saintmalik/mysubly/configs"
 	"github.com/saintmalik/mysubly/controllers"
 )
 
 func main() {
 	router := gin.Default()
 
-	//run database
-	configs.ConnectDB()
-	router.POST("/api/subs", controllers.CreateSubs)
+	router.GET("/api/subs/:subid", controllers.SubById)
+	router.DELETE("/api/subs/:subid", controllers.DeleteSub)
+	router.GET("/api/subs", controllers.Sub)
+	router.POST("/api/subs", controllers.CreateSub)
 
-	router.Run("localhost: 3010")
+	router.Run(":3010")
 }
