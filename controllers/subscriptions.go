@@ -16,7 +16,7 @@ import (
 
 var subsCollection *mongo.Collection = configs.GetCollection(configs.DB, "subs")
 
-func CreateSubs(c *gin.Context) {
+func CreateSub(c *gin.Context) {
 
 	session, _ := c.Request.Cookie("Cookie_1")
 	// fmt.Printf("headers: %v\n", cookies)
@@ -49,10 +49,10 @@ func CreateSubs(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Subs successfully", "Data": map[string]interface{}{"data": result}, session.Name:session.Value, "expiration":session.Expires})
+	c.JSON(http.StatusCreated, gin.H{"message": "Subs successfully", "Data": map[string]interface{}{"data": result}, session.Name: session.Value, "expiration": session.Expires})
 }
 
-func GetASub(c *gin.Context) {
+func SubById(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	subId := c.Param("subId")
 	defer cancel()
@@ -70,10 +70,10 @@ func GetASub(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "data found successfully!", "Data": res})
+	c.JSON(http.StatusCreated, gin.H{"message": "success", "data": res})
 }
 
-func EditSubs(c *gin.Context) {
+func EditSub(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	subId := c.Param("subId")
 	var subs models.Subs
@@ -86,7 +86,7 @@ func EditSubs(c *gin.Context) {
 		return
 	}
 
-	edited := bson.M{"name": subs.Name, "category": subs.Category}
+	edited := bson.M{"name": subs.Name, "category": subs.Category, "custom_icons": subs.CustomIcon}
 
 	result, err := subsCollection.UpdateOne(ctx, bson.M{"_id": objId}, bson.M{"$set": edited})
 
@@ -108,7 +108,7 @@ func EditSubs(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "data updated successfully!", "Data": map[string]interface{}{"data": result}})
 }
 
-func DeleteSubs(c *gin.Context) {
+func DeleteSub(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	subId := c.Param("subId")
 	defer cancel()

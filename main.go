@@ -11,10 +11,10 @@ func main() {
 
 	//run database
 	configs.ConnectDB()
-	router.POST("/api/subs/create", controllers.CreateSubs)
-	router.PUT("/api/subs/:subId", controllers.EditSubs)
-	router.DELETE("/api/subs/:subId", controllers.DeleteSubs)
-	router.GET("/api/subs/:subId", controllers.GetASub)
+	router.POST("/api/subs/create", controllers.CreateSub)
+	router.PUT("/api/subs/:subId", controllers.EditSub)
+	router.DELETE("/api/subs/:subId", controllers.DeleteSub)
+	router.GET("/api/subs/:subId", controllers.SubById)
 	router.GET("/api/subs", controllers.GetSubs)
 
 	router.Run("localhost: 3010")
