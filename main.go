@@ -16,6 +16,7 @@ func main() {
 	router.DELETE("/api/subs/:subId", controllers.DeleteSub)
 	router.GET("/api/subs/:subId", controllers.SubById)
 	router.GET("/api/subs", controllers.GetSubs)
+	router.POST("/api/signup", controllers.SignUp)
 
 	router.Run("localhost: 3010")
 }
